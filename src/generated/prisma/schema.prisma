@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Plato {
+  id          Int    @id @default(autoincrement())
+  nombre      String
+  descripcion String
+  precio      Float
+
+  extras ExtraPlato[]
+
+  @@map("platos")
+}
+
+model ExtraPlato {
+  id      Int @id @default(autoincrement())
+  idPlato Int @map("id_plato")
+  idExtra Int @map("id_extra")
+
+  plato Plato? @relation(fields: [idPlato], references: [id])
+  extra Extra? @relation(fields: [idExtra], references: [id])
+
+  @@map("extras_platos")
+}
+
+model Extra {
+  id     Int    @id @default(autoincrement())
+  nombre String
+
+  platos ExtraPlato[]
+
+  @@map("extras")
+}
