@@ -1,16 +1,140 @@
+// src/features/platos/plato.service.ts
 import { prisma } from '../../config/prisma.config';
-import { Prisma } from '../../generated/prisma';
+import { AppError } from '../../../core/errors/app-error';
+import { CreatePlatoDto, UpdatePlatoDto } from './plato.dto';
 
 export const getPlatos = async () => {
-  const platos = await prisma.plato.findMany();
-
-  return platos;
+  return prisma.plato.findMany({
+    include: {
+      extras: {
+        include: {
+          extra: true,
+        },
+      },
+    },
+  });
 };
 
-export const createPlato = async (plato: Prisma.PlatoCreateInput) => {
-  const newPlato = await prisma.plato.create({
-    data: plato,
+export const getPlatoById = async (id: number) => {
+  const plato = await prisma.plato.findUnique({
+    where: { id },
+    include: {
+      extras: {
+        include: {
+          extra: true,
+        },
+      },
+    },
   });
 
-  return newPlato;
+  if (!plato) {
+    throw new AppError('Plato no encontrado', 404);
+  }
+
+  return plato;
 };
+
+export const createPlato = async (data: CreatePlatoDto) => {
+  const {extras, ...rest} = data;
+
+  const platoCreado = await prisma.plato.create({data: rest})
+
+  if(extras !== undefined){
+    for (const extraId of extras) {
+      await prisma.extraPlato.create({
+        data: {
+          idPlato: platoCreado.id,
+          idExtra: extraId
+        }
+      })
+    }
+  }
+
+  const plato = await prisma.plato.findUnique({where: {id: platoCreado.id}, include: {extras: true}})
+
+  return plato;
+};
+
+export const updatePlato = async (id: number, data: UpdatePlatoDto) => {
+  await getPlatoById(id);
+  return prisma.plato.update({
+    where: { id },
+    data,
+  });
+};
+
+export const deletePlato = async (id: number) => {
+  await getPlatoById(id);
+  return prisma.plato.delete({
+    where: { id },
+  });
+};
+
+export const addExtraToPlato = async (platoId: number, extraId: number) => {
+  await getPlatoById(platoId);
+
+  const extraExists = await prisma.extra.findUnique({
+    where: { id: extraId },
+  });
+
+  if (!extraExists) {
+    throw new AppError('Extra no encontrado', 404);
+  }
+
+  return prisma.extraPlato.create({
+    data: {
+      idPlato: platoId,
+      idExtra: extraId,
+    },
+    include: {
+      plato: true,
+      extra: true,
+    },
+  });
+};
+
+export const quitarExtra = async (platoId: number, extraId: number) => {
+  const extraPlato = await prisma.extraPlato.findFirst({
+    where: {
+      idPlato: platoId,
+      idExtra: extraId,
+    },
+  });
+
+  if (!extraPlato) {
+    throw new AppError('Relación plato-extra no encontrada', 404);
+  }
+
+  return prisma.extraPlato.delete({
+    where: { id: extraPlato.id },
+  });
+};
+
+export const asignarExtras = async (platoId: number, extraIds: number[]) => {
+  await getPlatoById(platoId);
+
+  const extras = await prisma.extra.findMany({
+    where: {
+      id: {
+        in: extraIds,
+      },
+    },
+  });
+
+  if (extras.length !== extraIds.length) {
+    throw new AppError('Algunos extras no fueron encontrados', 404);
+  }
+
+  const extraPlatos = await Promise.all(
+    extras.map((extra) =>
+      prisma.extraPlato.create({
+        data: {
+          idPlato: platoId,
+          idExtra: extra.id,
+        },
+      })
+    )
+  );
+
+  return extraPlatos;
+}

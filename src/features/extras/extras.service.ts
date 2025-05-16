@@ -1,39 +1,68 @@
+// src/features/extras/extras.service.ts
 import { prisma } from '../../config/prisma.config';
-import { Prisma } from '../../generated/prisma';
+import { AppError } from '../../../core/errors/app-error';
+import { CreateExtraDto, UpdateExtraDto } from './extra.dto';
 
 export const getExtras = async () => {
-  const extras = await prisma.extra.findMany();
-  return extras;
+  return prisma.extra.findMany();
 };
 
 export const getExtraById = async (id: number) => {
   const extra = await prisma.extra.findUnique({
     where: { id },
+    include: {
+      platos: {
+        include: {
+          plato: true,
+        },
+      },
+    },
   });
+
+  if (!extra) {
+    throw new AppError('Extra no encontrado', 404);
+  }
+
   return extra;
 };
 
-export const createExtra = async (extra: Prisma.ExtraCreateInput) => {
-  const newExtra = await prisma.extra.create({
-    data: extra,
+export const createExtra = async (data: CreateExtraDto) => {
+  return prisma.extra.create({
+    data,
   });
-  return newExtra;
 };
 
-export const updateExtra = async (
-  id: number,
-  extra: Prisma.ExtraUpdateInput
-) => {
-  const updatedExtra = await prisma.extra.update({
+export const updateExtra = async (id: number, data: UpdateExtraDto) => {
+  await getExtraById(id);
+  return prisma.extra.update({
     where: { id },
-    data: extra,
+    data,
   });
-  return updatedExtra;
 };
 
 export const deleteExtra = async (id: number) => {
-  const deletedExtra = await prisma.extra.delete({
+  await getExtraById(id);
+  return prisma.extra.delete({
     where: { id },
   });
-  return deletedExtra;
 };
+
+export const getExtrasPorPlato = async (platoId: number) => {
+  const extrasPlatos = await prisma.extraPlato.findMany({where: {idPlato: platoId}})
+
+  const extras = extrasPlatos.map(async(extraPlato)=>{
+    const extra = await prisma.extra.findUnique({where: {id: extraPlato.idExtra}})
+
+    return extra;
+  })
+
+  await Promise.all(extras)
+
+  console.log(extras)
+
+  if (!extras) {
+    throw new AppError('No se encontraron extras para este plato', 404);
+  }
+
+  return extras;
+}

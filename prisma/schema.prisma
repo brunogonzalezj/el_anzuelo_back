@@ -14,13 +14,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Plato {
-  id          Int    @id @default(autoincrement())
-  nombre      String
-  descripcion String
-  precio      Float
+// Esquema para el sistema de restaurante
 
-  extras ExtraPlato[]
+// Modelos existentes
+model Plato {
+  id             Int             @id @default(autoincrement())
+  nombre         String
+  descripcion    String
+  precio         Float
+  categoria      String
+  extras         ExtraPlato[]
+  detallesPedido DetallePedido[]
 
   @@map("platos")
 }
@@ -37,10 +41,166 @@ model ExtraPlato {
 }
 
 model Extra {
-  id     Int    @id @default(autoincrement())
-  nombre String
+  id          Int    @id @default(autoincrement())
+  nombre      String
+  descripcion String
 
-  platos ExtraPlato[]
+  platos         ExtraPlato[]
+  detallesExtras DetalleExtra[]
+  inventario     ItemInventario? @relation(fields: [id], references: [id])
 
   @@map("extras")
+}
+
+// Nuevos modelos
+
+enum EstadoPedido {
+  PENDIENTE
+  PREPARANDO
+  LISTO
+  ENTREGADO
+}
+
+enum TipoPedido {
+  MESA
+  DELIVERY
+}
+
+model Pedido {
+  id               Int          @id @default(autoincrement())
+  fechaCreacion    DateTime     @default(now()) @map("fecha_creacion")
+  estado           EstadoPedido @default(PENDIENTE)
+  tipoPedido       TipoPedido   @map("tipo_pedido")
+  // Campos para pedidos en mesa
+  mesaId           Int?         @map("mesa_id")
+  meseroId         Int?         @map("mesero_id")
+  // Campos para delivery
+  nombreCliente    String?      @map("nombre_cliente")
+  direccionCliente String?      @map("direccion_cliente")
+  telefonoCliente  String?      @map("telefono_cliente")
+  repartidorId     Int?         @map("repartidor_id")
+  total            Float        @default(0)
+
+  mesa       Mesa?           @relation(fields: [mesaId], references: [id])
+  mesero     Usuario?        @relation("MeseroPedidos", fields: [meseroId], references: [id])
+  repartidor Usuario?        @relation("RepartidorPedidos", fields: [repartidorId], references: [id])
+  detalles   DetallePedido[]
+
+  @@map("pedidos")
+}
+
+model DetallePedido {
+  id       Int   @id @default(autoincrement())
+  pedidoId Int   @map("pedido_id")
+  platoId  Int   @map("plato_id")
+  cantidad Int
+  subtotal Float
+
+  pedido        Pedido         @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  plato         Plato          @relation(fields: [platoId], references: [id])
+  detallesExtra DetalleExtra[]
+
+  @@map("detalles_pedido")
+}
+
+model DetalleExtra {
+  id              Int @id @default(autoincrement())
+  detallePedidoId Int @map("detalle_pedido_id")
+  extraId         Int @map("extra_id")
+  cantidad        Int
+
+  detallePedido DetallePedido @relation(fields: [detallePedidoId], references: [id], onDelete: Cascade)
+  extra         Extra         @relation(fields: [extraId], references: [id])
+
+  @@map("detalles_extra")
+}
+
+enum SectorMesa {
+  A
+  B
+  C
+}
+
+enum EstadoMesa {
+  DISPONIBLE
+  RESERVADA
+  OCUPADA
+}
+
+model Mesa {
+  id        Int        @id @default(autoincrement())
+  numero    Int        @unique
+  sector    SectorMesa
+  estado    EstadoMesa @default(DISPONIBLE)
+  capacidad Int
+
+  pedidos  Pedido[]
+  reservas Reserva[]
+
+  @@map("mesas")
+}
+
+model Reserva {
+  id              Int         @id @default(autoincrement())
+  nombreCliente   String      @map("nombre_cliente")
+  telefono        String
+  fecha           DateTime
+  hora            String
+  cantPersonas    Int         @map("cant_personas")
+  mesaId          Int?        @map("mesa_id")
+  sectorPreferido SectorMesa? @map("sector_preferido")
+
+  mesa Mesa? @relation(fields: [mesaId], references: [id])
+
+  @@map("reservas")
+}
+
+enum CategoriaInventario {
+  PESCADOS
+  MARISCOS
+  EXTRAS
+  INSUMOS
+  LIMPIEZA
+  VERDURAS
+}
+
+model ItemInventario {
+  id           Int                 @id @default(autoincrement())
+  nombre       String
+  categoria    CategoriaInventario
+  stockActual  Float               @map("stock_actual")
+  stockMinimo  Float               @map("stock_minimo")
+  unidadMedida String              @map("unidad_medida")
+
+  extras Extra[]
+
+  @@map("inventario")
+}
+
+enum RolUsuario {
+  ENCARGADO
+  MESERO
+  CAJERO
+  CHEF
+  REPARTIDOR
+}
+
+enum EstadoUsuario {
+  ACTIVO
+  INACTIVO
+}
+
+model Usuario {
+  id       Int           @id @default(autoincrement())
+  nombre   String
+  apellido String
+  username String        @unique
+  password String
+  rol      RolUsuario
+  estado   EstadoUsuario @default(ACTIVO)
+
+  pedidosMesero     Pedido[] @relation("MeseroPedidos")
+  pedidosRepartidor Pedido[] @relation("RepartidorPedidos")
+
+  @@map("usuarios")
 }

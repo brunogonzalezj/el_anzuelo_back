@@ -1,98 +1,61 @@
-import { Router, Request, Response } from 'express';
-import {
-  createExtra,
-  deleteExtra,
-  getExtraById,
-  getExtras,
-  updateExtra,
-} from './extras.service';
+// src/features/extras/extra.controller.ts
+import { Request, Response, NextFunction } from 'express';
+import * as extraService from './extras.service';
 
-export const extrasController = Router();
+export const getExtras = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const extras = await extraService.getExtras();
+    res.json(extras);
+  } catch (error) {
+    next(error);
+  }
+};
 
-interface ExtraBody {
-  nombre: string;
+export const getExtraById = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = parseInt(req.params.id);
+    const extra = await extraService.getExtraById(id);
+    res.json(extra);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const createExtra = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const extra = await extraService.createExtra(req.body);
+    res.status(201).json(extra);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateExtra = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = parseInt(req.params.id);
+    const extra = await extraService.updateExtra(id, req.body);
+    res.json(extra);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteExtra = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const id = parseInt(req.params.id);
+    await extraService.deleteExtra(id);
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getExtrasPorPlato = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const platoId = parseInt(req.params.platoId);
+    const extras = await extraService.getExtrasPorPlato(platoId);
+    res.json(extras);
+  } catch (error) {
+    next(error);
+  }
 }
-
-interface ExtraParams {
-  id: string;
-}
-
-extrasController
-  .route('/')
-  .get(async (_req: Request, res: Response) => {
-    try {
-      const extras = await getExtras();
-      res.json(extras);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        message: 'Error al obtener los extras',
-        error: error.message,
-      });
-    }
-  })
-  .post(async (req: Request<{}, {}, ExtraBody>, res: Response) => {
-    try {
-      const body = req.body;
-      const createdExtra = await createExtra(body);
-      res.status(201).json(createdExtra);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        message: 'Error al crear el extra',
-        error: error.message,
-      });
-    }
-  });
-
-extrasController
-  .route('/:id')
-  .get(async (req: Request<ExtraParams>, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      const extra = await getExtraById(id);
-
-      if (!extra) {
-        res.status(404).json({
-          message: 'Extra no encontrado',
-        });
-        return;
-      }
-
-      res.json(extra);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        message: 'Error al obtener el extra',
-        error: error.message,
-      });
-    }
-  })
-  .put(async (req: Request<ExtraParams, {}, ExtraBody>, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      const body = req.body;
-
-      const updatedExtra = await updateExtra(id, body);
-      res.json(updatedExtra);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        message: 'Error al actualizar el extra',
-        error: error.message,
-      });
-    }
-  })
-  .delete(async (req: Request<ExtraParams>, res: Response) => {
-    try {
-      const id = parseInt(req.params.id);
-      const deletedExtra = await deleteExtra(id);
-      res.json(deletedExtra);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        message: 'Error al eliminar el extra',
-        error: error.message,
-      });
-    }
-  });
