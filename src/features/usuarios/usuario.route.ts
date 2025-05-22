@@ -14,13 +14,41 @@ usuariosRouter.post('/login', usuarioController.login);
 
 // Rutas para perfil de usuario
 usuariosRouter.get('/perfil', usuarioController.getUserProfile);
-usuariosRouter.put('/perfil/:id/cambiar-password', usuarioController.cambiarPassword);
+usuariosRouter.put(
+  '/perfil/:id/cambiar-password',
+  usuarioController.cambiarPassword
+);
 
 // Rutas para administración de usuarios (solo roles autorizados)
-usuariosRouter.get('/', roleMiddleware(['ENCARGADO']), usuarioController.getUsuarios);
-usuariosRouter.get('/:id', roleMiddleware(['ENCARGADO']), usuarioController.getUsuarioById);
-usuariosRouter.get('/rol/:rol', roleMiddleware(['ENCARGADO']), usuarioController.getUsuariosPorRol);
-usuariosRouter.post('/',  usuarioController.createUsuario);
-usuariosRouter.put('/:id', roleMiddleware(['ENCARGADO']), usuarioController.updateUsuario);
-usuariosRouter.delete('/:id', roleMiddleware(['ENCARGADO']), usuarioController.deleteUsuario);
-usuariosRouter.patch('/:id/estado', roleMiddleware(['ENCARGADO']), usuarioController.cambiarEstado);
+usuariosRouter.get(
+  '/',
+  authMiddleware,
+  roleMiddleware(['ENCARGADO']),
+  usuarioController.getUsuarios
+);
+usuariosRouter.get(
+  '/:id',
+  roleMiddleware(['ENCARGADO']),
+  usuarioController.getUsuarioById
+);
+usuariosRouter.get(
+  '/rol/:rol',
+  roleMiddleware(['ENCARGADO']),
+  usuarioController.getUsuariosPorRol
+);
+usuariosRouter.post('/', usuarioController.createUsuario);
+usuariosRouter.put(
+  '/:id',
+  roleMiddleware(['ENCARGADO']),
+  usuarioController.updateUsuario
+);
+usuariosRouter.delete(
+  '/:id',
+  roleMiddleware(['ENCARGADO']),
+  usuarioController.deleteUsuario
+);
+usuariosRouter.patch(
+  '/:id/estado',
+  roleMiddleware(['ENCARGADO']),
+  usuarioController.cambiarEstado
+);

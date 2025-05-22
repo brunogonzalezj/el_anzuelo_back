@@ -3,7 +3,11 @@ import { Request, Response, NextFunction } from 'express';
 import * as usuarioService from './usuario.service';
 import { AppError } from '../../../core/errors/app-error';
 
-export const getUsuarios = async (req: Request, res: Response, next: NextFunction) => {
+export const getUsuarios = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const usuarios = await usuarioService.getUsuarios();
     res.json(usuarios);
@@ -12,7 +16,11 @@ export const getUsuarios = async (req: Request, res: Response, next: NextFunctio
   }
 };
 
-export const getUsuarioById = async (req: Request, res: Response, next: NextFunction) => {
+export const getUsuarioById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const id = parseInt(req.params.id);
     const usuario = await usuarioService.getUsuarioById(id);
@@ -22,7 +30,11 @@ export const getUsuarioById = async (req: Request, res: Response, next: NextFunc
   }
 };
 
-export const getUsuariosPorRol = async (req: Request, res: Response, next: NextFunction) => {
+export const getUsuariosPorRol = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const rol = req.params.rol;
     const usuarios = await usuarioService.getUsuariosPorRol(rol);
@@ -32,7 +44,11 @@ export const getUsuariosPorRol = async (req: Request, res: Response, next: NextF
   }
 };
 
-export const createUsuario = async (req: Request, res: Response, next: NextFunction) => {
+export const createUsuario = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const usuario = await usuarioService.createUsuario(req.body);
     res.status(201).json(usuario);
@@ -41,7 +57,11 @@ export const createUsuario = async (req: Request, res: Response, next: NextFunct
   }
 };
 
-export const updateUsuario = async (req: Request, res: Response, next: NextFunction) => {
+export const updateUsuario = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const id = parseInt(req.params.id);
     const usuario = await usuarioService.updateUsuario(id, req.body);
@@ -51,7 +71,11 @@ export const updateUsuario = async (req: Request, res: Response, next: NextFunct
   }
 };
 
-export const deleteUsuario = async (req: Request, res: Response, next: NextFunction) => {
+export const deleteUsuario = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const id = parseInt(req.params.id);
     await usuarioService.deleteUsuario(id);
@@ -61,7 +85,11 @@ export const deleteUsuario = async (req: Request, res: Response, next: NextFunct
   }
 };
 
-export const login = async (req: Request, res: Response, next: NextFunction) => {
+export const login = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const { username, password } = req.body;
 
@@ -76,7 +104,11 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
   }
 };
 
-export const cambiarEstado = async (req: Request, res: Response, next: NextFunction) => {
+export const cambiarEstado = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const id = parseInt(req.params.id);
     const { estado } = req.body;
@@ -92,7 +124,11 @@ export const cambiarEstado = async (req: Request, res: Response, next: NextFunct
   }
 };
 
-export const cambiarPassword = async (req: Request, res: Response, next: NextFunction) => {
+export const cambiarPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const id = parseInt(req.params.id);
     const { oldPassword, newPassword } = req.body;
@@ -101,17 +137,25 @@ export const cambiarPassword = async (req: Request, res: Response, next: NextFun
       throw new AppError('Se requiere contraseña anterior y nueva', 400);
     }
 
-    const usuario = await usuarioService.cambiarPassword(id, oldPassword, newPassword);
+    const usuario = await usuarioService.cambiarPassword(
+      id,
+      oldPassword,
+      newPassword
+    );
     res.json(usuario);
   } catch (error) {
     next(error);
   }
 };
 
-export const getUserProfile = async (req: Request, res: Response, next: NextFunction) => {
+export const getUserProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     // Asumimos que el ID del usuario está disponible en req.user.id
-    const id = req.user!.id;
+    const id = req.user.id;
     const profile = await usuarioService.getUserProfile(id);
     res.json(profile);
   } catch (error) {
