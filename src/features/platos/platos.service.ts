@@ -35,31 +35,76 @@ export const getPlatoById = async (id: number) => {
 };
 
 export const createPlato = async (data: CreatePlatoDto) => {
-  const {extras, ...rest} = data;
+  const { extras, ...rest } = data;
 
-  const platoCreado = await prisma.plato.create({data: rest})
+  // Asegúrate de que rest incluya la propiedad 'categoria'
+  // Si no está en el DTO, deberías agregarla o manejarla adecuadamente
+  const platoCreado = await prisma.plato.create({
+    data: {
+      ...rest,
+      categoria: rest.categoria // Asegúrate de que esta propiedad existe en el DTO
+    }
+  });
 
-  if(extras !== undefined){
+  if (extras !== undefined) {
     for (const extraId of extras) {
       await prisma.extraPlato.create({
         data: {
           idPlato: platoCreado.id,
           idExtra: extraId
         }
-      })
+      });
     }
   }
 
-  const plato = await prisma.plato.findUnique({where: {id: platoCreado.id}, include: {extras: true}})
+  const plato = await prisma.plato.findUnique({
+    where: { id: platoCreado.id },
+    include: { extras: true }
+  });
 
   return plato;
 };
 
 export const updatePlato = async (id: number, data: UpdatePlatoDto) => {
   await getPlatoById(id);
+
+  // Extraemos extras del DTO para manejarlo separadamente
+  const { extras, ...restData } = data;
+
+  // Si hay extras, los manejamos con el formato adecuado para Prisma
+  if (extras !== undefined) {
+    // Primero actualizamos el plato sin los extras
+    await prisma.plato.update({
+      where: { id },
+      data: restData,
+    });
+
+    // Luego eliminamos todos los extras existentes
+    await prisma.extraPlato.deleteMany({
+      where: { idPlato: id },
+    });
+
+    // Finalmente creamos las nuevas relaciones
+    for (const extraId of extras) {
+      await prisma.extraPlato.create({
+        data: {
+          idPlato: id,
+          idExtra: extraId,
+        },
+      });
+    }
+
+    return prisma.plato.findUnique({
+      where: { id },
+      include: { extras: { include: { extra: true } } },
+    });
+  }
+
+  // Si no hay extras, simplemente actualizamos el plato
   return prisma.plato.update({
     where: { id },
-    data,
+    data: restData,
+    include: { extras: { include: { extra: true } } },
   });
 };
 
