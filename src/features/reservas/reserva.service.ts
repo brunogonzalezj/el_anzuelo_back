@@ -38,20 +38,26 @@ export const createReserva = async (data: CreateReservaDto) => {
 
     // Verificar si la capacidad es suficiente
     if (mesa.capacidad < data.cantPersonas) {
-      throw new AppError('La mesa no tiene capacidad suficiente para esta reserva', 400);
+      throw new AppError(
+        'La mesa no tiene capacidad suficiente para esta reserva',
+        400
+      );
     }
 
     // Verificar si la mesa ya está reservada para el mismo día y hora
     const reservaExistente = await prisma.reserva.findFirst({
       where: {
         mesaId: data.mesaId,
-        fecha: data.fecha,
+        fecha: new Date(data.fecha),
         hora: data.hora,
       },
     });
 
     if (reservaExistente) {
-      throw new AppError('La mesa ya está reservada para esa fecha y hora', 400);
+      throw new AppError(
+        'La mesa ya está reservada para esa fecha y hora',
+        400
+      );
     }
   } else if (data.sectorPreferido) {
     // Si no se especifica mesa pero sí sector, intentar buscar mesa disponible
@@ -73,7 +79,10 @@ export const createReserva = async (data: CreateReservaDto) => {
   }
 
   return prisma.reserva.create({
-    data,
+    data: {
+      ...data,
+      fecha: new Date(data.fecha),
+    },
     include: {
       mesa: true,
     },
@@ -95,7 +104,10 @@ export const updateReserva = async (id: number, data: UpdateReservaDto) => {
 
     // Verificar capacidad si se especifica cantPersonas o usar la de la reserva existente
     if (data.cantPersonas && mesa.capacidad < data.cantPersonas) {
-      throw new AppError('La mesa no tiene capacidad suficiente para esta reserva', 400);
+      throw new AppError(
+        'La mesa no tiene capacidad suficiente para esta reserva',
+        400
+      );
     }
 
     // Verificar disponibilidad para la nueva fecha/hora si se cambian
@@ -113,7 +125,10 @@ export const updateReserva = async (id: number, data: UpdateReservaDto) => {
       });
 
       if (reservaExistente) {
-        throw new AppError('La mesa ya está reservada para esa fecha y hora', 400);
+        throw new AppError(
+          'La mesa ya está reservada para esa fecha y hora',
+          400
+        );
       }
     }
   }
