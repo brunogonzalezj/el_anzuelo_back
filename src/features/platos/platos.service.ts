@@ -126,7 +126,7 @@ export const asignarExtras = async (platoId: number, extraIds: number[]) => {
   }
 
   const extraPlatos = await Promise.all(
-    extras.map((extra) =>
+    extras.map((extra: any) =>
       prisma.extraPlato.create({
         data: {
           idPlato: platoId,

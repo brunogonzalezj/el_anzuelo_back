@@ -10,7 +10,7 @@ export const usuariosRouter = Router();
 usuariosRouter.post('/login', usuarioController.login);
 
 // Rutas protegidas
-usuariosRouter.use(authMiddleware);
+//usuariosRouter.use(authMiddleware);
 
 // Rutas para perfil de usuario
 usuariosRouter.get('/perfil', usuarioController.getUserProfile);
@@ -20,7 +20,7 @@ usuariosRouter.put('/perfil/:id/cambiar-password', usuarioController.cambiarPass
 usuariosRouter.get('/', roleMiddleware(['ENCARGADO']), usuarioController.getUsuarios);
 usuariosRouter.get('/:id', roleMiddleware(['ENCARGADO']), usuarioController.getUsuarioById);
 usuariosRouter.get('/rol/:rol', roleMiddleware(['ENCARGADO']), usuarioController.getUsuariosPorRol);
-usuariosRouter.post('/', roleMiddleware(['ENCARGADO']), usuarioController.createUsuario);
+usuariosRouter.post('/',  usuarioController.createUsuario);
 usuariosRouter.put('/:id', roleMiddleware(['ENCARGADO']), usuarioController.updateUsuario);
 usuariosRouter.delete('/:id', roleMiddleware(['ENCARGADO']), usuarioController.deleteUsuario);
 usuariosRouter.patch('/:id/estado', roleMiddleware(['ENCARGADO']), usuarioController.cambiarEstado);
