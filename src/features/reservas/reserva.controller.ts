@@ -2,7 +2,11 @@
 import { Request, Response, NextFunction } from 'express';
 import * as reservaService from './reserva.service';
 
-export const getReservas = async (req: Request, res: Response, next: NextFunction) => {
+export const getReservas = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const reservas = await reservaService.getReservas();
     res.json(reservas);
@@ -11,7 +15,11 @@ export const getReservas = async (req: Request, res: Response, next: NextFunctio
   }
 };
 
-export const getReservaById = async (req: Request, res: Response, next: NextFunction) => {
+export const getReservaById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const id = parseInt(req.params.id);
     const reserva = await reservaService.getReservaById(id);
@@ -21,7 +29,11 @@ export const getReservaById = async (req: Request, res: Response, next: NextFunc
   }
 };
 
-export const createReserva = async (req: Request, res: Response, next: NextFunction) => {
+export const createReserva = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const reserva = await reservaService.createReserva(req.body);
     res.status(201).json(reserva);
@@ -30,7 +42,11 @@ export const createReserva = async (req: Request, res: Response, next: NextFunct
   }
 };
 
-export const updateReserva = async (req: Request, res: Response, next: NextFunction) => {
+export const updateReserva = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const id = parseInt(req.params.id);
     const reserva = await reservaService.updateReserva(id, req.body);
@@ -40,7 +56,11 @@ export const updateReserva = async (req: Request, res: Response, next: NextFunct
   }
 };
 
-export const deleteReserva = async (req: Request, res: Response, next: NextFunction) => {
+export const deleteReserva = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const id = parseInt(req.params.id);
     await reservaService.deleteReserva(id);

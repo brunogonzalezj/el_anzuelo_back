@@ -2,7 +2,11 @@
 import { Request, Response, NextFunction } from 'express';
 import * as pedidoService from './pedido.service';
 
-export const getPedidos = async (req: Request, res: Response, next: NextFunction) => {
+export const getPedidos = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const pedidos = await pedidoService.getPedidos();
     res.json(pedidos);
@@ -11,7 +15,11 @@ export const getPedidos = async (req: Request, res: Response, next: NextFunction
   }
 };
 
-export const getPedidoById = async (req: Request, res: Response, next: NextFunction) => {
+export const getPedidoById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const id = parseInt(req.params.id);
     const pedido = await pedidoService.getPedidoById(id);
@@ -21,7 +29,11 @@ export const getPedidoById = async (req: Request, res: Response, next: NextFunct
   }
 };
 
-export const createPedido = async (req: Request, res: Response, next: NextFunction) => {
+export const createPedido = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const pedido = await pedidoService.createPedido(req.body);
     res.status(201).json(pedido);
@@ -30,7 +42,11 @@ export const createPedido = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-export const updatePedido = async (req: Request, res: Response, next: NextFunction) => {
+export const updatePedido = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const id = parseInt(req.params.id);
     const pedido = await pedidoService.updatePedido(id, req.body);
@@ -40,7 +56,11 @@ export const updatePedido = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-export const deletePedido = async (req: Request, res: Response, next: NextFunction) => {
+export const deletePedido = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const id = parseInt(req.params.id);
     await pedidoService.deletePedido(id);
@@ -50,7 +70,11 @@ export const deletePedido = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-export const cambiarEstado = async (req: Request, res: Response, next: NextFunction) => {
+export const cambiarEstado = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const id = parseInt(req.params.id);
     const { estado } = req.body;
@@ -60,9 +84,3 @@ export const cambiarEstado = async (req: Request, res: Response, next: NextFunct
     next(error);
   }
 };
-
-
-
-
-
-
