@@ -36,7 +36,7 @@ usuariosRouter.get(
   roleMiddleware(['ENCARGADO']),
   usuarioController.getUsuariosPorRol
 );
-usuariosRouter.post('/', usuarioController.createUsuario);
+usuariosRouter.post('/', authMiddleware, roleMiddleware(['ENCARGADO']), usuarioController.createUsuario);
 usuariosRouter.put(
   '/:id',
   roleMiddleware(['ENCARGADO']),

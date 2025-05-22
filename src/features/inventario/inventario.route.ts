@@ -17,7 +17,7 @@ inventarioRouter.get('/', roleMiddleware(allowedRoles), inventarioController.get
 inventarioRouter.get('/:id', roleMiddleware(allowedRoles), inventarioController.getItemById);
 
 // Rutas para administración de inventario
-inventarioRouter.post('/', roleMiddleware(['ENCARGADO']), inventarioController.createItem);
-inventarioRouter.put('/:id', roleMiddleware(['ENCARGADO']), inventarioController.updateItem);
-inventarioRouter.delete('/:id', roleMiddleware(['ENCARGADO']), inventarioController.deleteItem);
+inventarioRouter.post('/', roleMiddleware(allowedRoles), inventarioController.createItem);
+inventarioRouter.put('/:id', roleMiddleware(allowedRoles), inventarioController.updateItem);
+inventarioRouter.delete('/:id', roleMiddleware(allowedRoles), inventarioController.deleteItem);
 inventarioRouter.patch('/:id/stock', roleMiddleware(allowedRoles), inventarioController.actualizarStock);
