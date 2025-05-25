@@ -46,6 +46,7 @@ export const deletePlato = async (req: Request, res: Response, next: NextFunctio
     await platoService.deletePlato(id);
     res.status(204).end();
   } catch (error) {
+    console.error(error);
     next(error);
   }
 };

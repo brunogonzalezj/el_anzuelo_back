@@ -19,12 +19,10 @@ export interface PedidoDto extends BaseDto {
 export interface CreatePedidoDto {
   tipoPedido: TipoPedido;
   mesaId?: number;
-  meseroId?: number;
   nombreCliente?: string;
   direccionCliente?: string;
   telefonoCliente?: string;
-  repartidorId?: number;
-  detalles: CreateDetallePedidoDto[];
+  detalles: {};
 }
 
 export interface UpdatePedidoDto {

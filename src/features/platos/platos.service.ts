@@ -2,6 +2,7 @@
 import { prisma } from '../../config/prisma.config';
 import { AppError } from '../../../core/errors/app-error';
 import { CreatePlatoDto, UpdatePlatoDto } from './plato.dto';
+import { deleteExtraPlato } from '../extras/extras.service';
 
 export const getPlatos = async () => {
   return prisma.plato.findMany({
@@ -110,6 +111,7 @@ export const updatePlato = async (id: number, data: UpdatePlatoDto) => {
 
 export const deletePlato = async (id: number) => {
   await getPlatoById(id);
+  await deleteExtraPlato(id)
   return prisma.plato.delete({
     where: { id },
   });

@@ -1,4 +1,4 @@
-// src/features/pedidos/pedido.service.ts
+  // src/features/pedidos/pedido.service.ts
 import { prisma } from '../../config/prisma.config';
 import { AppError } from '../../../core/errors/app-error';
 import { CreatePedidoDto, UpdatePedidoDto } from './pedido.dto';
@@ -52,123 +52,40 @@ export const getPedidoById = async (id: number) => {
 };
 
 export const createPedido = async (data: CreatePedidoDto) => {
-  // const { detalles, ...pedidoData } = data;
+  // Crea un nuevo pedido, verificando si la mesa está disponible, si es tipo DELIVERY no se requiere mesa. Si es tipo MESA, verifica que la mesa esté disponible y cambia el estado a OCUPADA. Si es delivery, no se requiere mesa.
+  // Si la mesa está ocupada, lanza un error.
+  // Si el pedido es de tipo DELIVERY, no se requiere mesa.
+  if (data.tipoPedido === 'MESA') {
+    const mesa = await prisma.mesa.findUnique({
+      where: { id: data.mesaId },
+    });
 
-  // // Validar mesa si se proporciona ID
-  // if (pedidoData.mesaId) {
-  //   const mesa = await prisma.mesa.findUnique({
-  //     where: { id: pedidoData.mesaId },
-  //   });
+    if (!mesa) {
+      throw new AppError('Mesa no encontrada', 404);
+    }
 
-  //   if (!mesa) {
-  //     throw new AppError('Mesa no encontrada', 404);
-  //   }
-
-  //   // Actualizar estado de la mesa
-  //   await prisma.mesa.update({
-  //     where: { id: pedidoData.mesaId },
-  //     data: { estado: 'OCUPADA' },
-  //   });
-  // }
-
-  // // Calcular total y crear el pedido con sus detalles
-  // let total = 0;
-
-  // // Transacción para crear pedido y todos sus detalles
-  // const pedido = await prisma.$transaction(async (tx) => {
-  //   // Crear el pedido
-  //   const nuevoPedido = await tx.pedido.create({
-  //     data: {
-  //       ...pedidoData,
-  //       total: 0, // Se actualizará después
-  //     },
-  //   });
-
-  //   // Crear los detalles del pedido
-  //   for (const detalle of detalles) {
-  //     const plato = await tx.plato.findUnique({
-  //       where: { id: detalle.platoId },
-  //     });
-
-  //     if (!plato) {
-  //       throw new AppError(
-  //         `Plato con ID ${detalle.platoId} no encontrado`,
-  //         404
-  //       );
-  //     }
-
-  //     const subtotal = plato.precio * detalle.cantidad;
-  //     total += subtotal;
-
-  //     const nuevoDetalle = await tx.detallePedido.create({
-  //       data: {
-  //         pedidoId: nuevoPedido.id,
-  //         platoId: detalle.platoId,
-  //         cantidad: detalle.cantidad,
-  //         subtotal,
-  //       },
-  //     });
-
-  //     // Crear detalles de extras si existen
-  //     if (detalle.extras && detalle.extras.length > 0) {
-  //       for (const extra of detalle.extras) {
-  //         const extraExiste = await tx.extra.findUnique({
-  //           where: { id: extra.extraId },
-  //         });
-
-  //         if (!extraExiste) {
-  //           throw new AppError(
-  //             `Extra con ID ${extra.extraId} no encontrado`,
-  //             404
-  //           );
-  //         }
-
-  //         await tx.detalleExtra.create({
-  //           data: {
-  //             detallePedidoId: nuevoDetalle.id,
-  //             extraId: extra.extraId,
-  //             cantidad: extra.cantidad,
-  //           },
-  //         });
-  //       }
-  //     }
-  //   }
-
-  //   // Actualizar el total del pedido
-  //   return tx.pedido.update({
-  //     where: { id: nuevoPedido.id },
-  //     data: { total },
-  //     include: {
-  //       mesa: true,
-  //       mesero: true,
-  //       repartidor: true,
-  //       detalles: {
-  //         include: {
-  //           plato: true,
-  //           detallesExtra: {
-  //             include: {
-  //               extra: true,
-  //             },
-  //           },
-  //         },
-  //       },
-  //     },
-  //   });
-  // });
-
-  // return pedido;
-
-  const productoCreado = await prisma.pedido.create({
-    data: {
-      tipoPedido: 'MESA',
-      mesaId: 2,
-      estado: 'PENDIENTE',
-      total: 55,
-    },
-  });
-
-  return productoCreado;
-};
+    if (mesa.estado !== 'DISPONIBLE') {
+      throw new AppError('La mesa está ocupada o reservada', 400);
+    }
+    if (mesa.estado === 'DISPONIBLE' && mesa){
+      const pedido = await prisma.pedido.create({
+        data: {
+          ...data,
+          estado: EstadoPedido.PENDIENTE,
+          fechaCreacion: new Date(),
+          tipoPedido: data.tipoPedido,
+        },
+        include: {
+          detalles: true
+        },
+      });
+      await prisma.mesa.update({
+        where: { id: data.mesaId },
+        data: { estado: 'OCUPADA' },
+      });
+    }
+  }
+ }
 
 export const updatePedido = async (id: number, data: UpdatePedidoDto) => {
   const pedido = await getPedidoById(id);
@@ -177,7 +94,7 @@ export const updatePedido = async (id: number, data: UpdatePedidoDto) => {
   if (data.estado === EstadoPedido.ENTREGADO && pedido.mesaId) {
     await prisma.mesa.update({
       where: { id: pedido.mesaId },
-      data: { estado: 'DISPONIBLE' },
+      data: { estado: 'DISPONIBLE'},
     });
   }
 

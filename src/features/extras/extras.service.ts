@@ -66,3 +66,19 @@ export const getExtrasPorPlato = async (platoId: number) => {
 
   return extras;
 }
+
+export const deleteExtraPlato = async (platoId: number) => {
+  // Verificar si el plato existe
+  const plato = await prisma.plato.findUnique({
+    where: { id: platoId },
+  });
+
+  if (!plato) {
+    throw new AppError('Plato no encontrado', 404);
+  }
+
+  // Eliminar todas las relaciones de extra-plato para este plato
+  return prisma.extraPlato.deleteMany({
+    where: { idPlato: platoId }
+  });
+};

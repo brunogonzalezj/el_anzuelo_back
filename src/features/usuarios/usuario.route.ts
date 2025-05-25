@@ -6,6 +6,8 @@ import { roleMiddleware } from '../../middlewares/role.middleware';
 
 export const usuariosRouter = Router();
 
+// Todas las rutas de usuarios requieren autenticación
+
 // Rutas públicas
 usuariosRouter.post('/login', usuarioController.login);
 
