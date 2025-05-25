@@ -16,13 +16,22 @@ export interface PedidoDto extends BaseDto {
   detalles?: DetallePedidoDto[];
 }
 
+// Modificación sugerida para pedido.dto.ts
 export interface CreatePedidoDto {
-  tipoPedido: TipoPedido;
+  tipoPedido: 'MESA' | 'DELIVERY';
+  // Campos para pedidos en mesa
   mesaId?: number;
+  // Campos para delivery
   nombreCliente?: string;
   direccionCliente?: string;
   telefonoCliente?: string;
-  detalles: {};
+  // Campos comunes
+  total?: number;
+  detalles?: {
+    platoId: number;
+    cantidad: number;
+    subtotal: number;
+  }[];
 }
 
 export interface UpdatePedidoDto {

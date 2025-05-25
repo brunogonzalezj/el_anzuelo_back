@@ -13,11 +13,6 @@ export const getPedidos = async () => {
       detalles: {
         include: {
           plato: true,
-          detallesExtra: {
-            include: {
-              extra: true,
-            },
-          },
         },
       },
     },
@@ -51,41 +46,71 @@ export const getPedidoById = async (id: number) => {
   return pedido;
 };
 
-export const createPedido = async (data: CreatePedidoDto) => {
-  // Crea un nuevo pedido, verificando si la mesa está disponible, si es tipo DELIVERY no se requiere mesa. Si es tipo MESA, verifica que la mesa esté disponible y cambia el estado a OCUPADA. Si es delivery, no se requiere mesa.
-  // Si la mesa está ocupada, lanza un error.
-  // Si el pedido es de tipo DELIVERY, no se requiere mesa.
-  if (data.tipoPedido === 'MESA') {
-    const mesa = await prisma.mesa.findUnique({
-      where: { id: data.mesaId },
-    });
+  export const createPedido = async (data: CreatePedidoDto) => {
+    // Validaciones iniciales
+    if (data.tipoPedido === 'MESA') {
+      // Verificar si se proporcionó mesaId para pedidos en mesa
+      if (!data.mesaId) {
+        throw new AppError('El ID de la mesa es requerido para pedidos en mesa', 400);
+      }
 
-    if (!mesa) {
-      throw new AppError('Mesa no encontrada', 404);
-    }
-
-    if (mesa.estado !== 'DISPONIBLE') {
-      throw new AppError('La mesa está ocupada o reservada', 400);
-    }
-    if (mesa.estado === 'DISPONIBLE' && mesa){
-      const pedido = await prisma.pedido.create({
-        data: {
-          ...data,
-          estado: EstadoPedido.PENDIENTE,
-          fechaCreacion: new Date(),
-          tipoPedido: data.tipoPedido,
-        },
-        include: {
-          detalles: true
-        },
+      // Verificar si la mesa existe y está disponible
+      const mesa = await prisma.mesa.findUnique({
+        where: { id: data.mesaId },
       });
+
+      if (!mesa) {
+        throw new AppError('Mesa no encontrada', 404);
+      }
+
+      if (mesa.estado !== 'DISPONIBLE') {
+        throw new AppError('La mesa no está disponible', 400);
+      }
+
+      // Marcar la mesa como ocupada
       await prisma.mesa.update({
         where: { id: data.mesaId },
         data: { estado: 'OCUPADA' },
       });
+    } else if (data.tipoPedido === 'DELIVERY') {
+      // Verificar datos necesarios para delivery
+      if (!data.nombreCliente || !data.direccionCliente || !data.telefonoCliente) {
+        throw new AppError('Para pedidos a domicilio se requiere nombre, dirección y teléfono del cliente', 400);
+      }
     }
-  }
- }
+
+    // Calcular total si no se proporciona
+    let total = data.total || 0;
+
+    // Crear el pedido
+    const pedido = await prisma.pedido.create({
+      data: {
+        tipoPedido: data.tipoPedido,
+        mesaId: data.tipoPedido === 'MESA' ? data.mesaId : null,
+        nombreCliente: data.nombreCliente,
+        direccionCliente: data.direccionCliente,
+        telefonoCliente: data.telefonoCliente,
+        total: total,
+        detalles: {
+          create: data.detalles?.map(detalle => ({
+            platoId: detalle.platoId,
+            cantidad: detalle.cantidad,
+            subtotal: detalle.subtotal,
+          }))
+        }
+      },
+      include: {
+        mesa: true,
+        detalles: {
+          include: {
+            plato: true,
+          }
+        }
+      }
+    });
+
+    return pedido;
+  };
 
 export const updatePedido = async (id: number, data: UpdatePedidoDto) => {
   const pedido = await getPedidoById(id);
