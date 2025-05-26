@@ -59,6 +59,7 @@ enum EstadoPedido {
   PREPARANDO
   LISTO
   ENTREGADO
+  FACTURADO
 }
 
 enum TipoPedido {
